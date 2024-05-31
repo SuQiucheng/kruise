@@ -56,6 +56,7 @@ const (
 	ContainerRuntimeContainerd = "containerd"
 	ContainerRuntimePouch      = "pouch"
 	ContainerRuntimeCommonCRI  = "common-cri"
+	ContainerRuntimeCRIDockerd = "cri-dockerd"
 )
 
 type runtimeConfig struct {
@@ -210,6 +211,16 @@ func detectRuntime(varRunPath string) (cfgs []runtimeConfig) {
 			klog.Errorf("%s/docker.sock exists, but not found %s/dockershim.sock", varRunPath, varRunPath)
 		} else if err1 != nil && err2 == nil {
 			klog.Errorf("%s/dockershim.sock exists, but not found %s/docker.sock", varRunPath, varRunPath)
+		}
+	}
+
+	// cri-dockerd
+	{
+		if _, err := os.Stat(fmt.Sprintf("%s/cri-dockerd.sock", varRunPath)); err == nil {
+			cfgs = append(cfgs, runtimeConfig{
+				runtimeType:      ContainerRuntimeCRIDockerd,
+				runtimeRemoteURI: fmt.Sprintf("unix://%s/cri-dockerd.sock", varRunPath),
+			})
 		}
 	}
 
